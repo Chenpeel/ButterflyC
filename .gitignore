@@ -1,0 +1,6 @@
+__pycache__
+.DS_Store
+TEMP
+log
+main/data/*
+!main/data/dataset_urls.md

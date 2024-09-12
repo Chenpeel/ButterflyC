@@ -1,0 +1,28 @@
+device: 'CPU'  # CPU or GPU
+num_workers: 0  # 线程数
+num_classes: 10  # 分类数量
+
+image_size: 224  # 图片大小
+batch_size: 16  # 单次训练数量
+capacity: 250  # 缓冲区大小
+precision: 'float16'  # 模型精度
+epochs: 50  # 训练次数
+lr: 0.001  # 学习率
+
+# -----------------------------------------------------
+# 数据集路径配置
+dataset: butterfly  # 数据集名称
+classes_filename: 'cat2name.json'  # 类别文件名
+train_path: 'main/data/{{dataset}}/train'
+valid_path: 'main/data/{{dataset}}/valid'
+classes_path: 'main/data/{{dataset}}/{{classes_filename}}'
+
+# 缓冲区路径配置
+temp_path: 'TEMP'
+
+# 模型路径配置
+res_model_path: 'models/'
+load_model_path: 'models/pretrain'
+
+# 日志路径配置
+log_path: 'log/'
