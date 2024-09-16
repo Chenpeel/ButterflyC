@@ -1,0 +1,129 @@
+body {
+	font-family: Arial, sans-serif;
+	margin: 20px;
+}
+
+.title_pics {
+	text-align: center;
+}
+
+.container {
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+.title {
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+.left_pic {
+	display: block;
+	width: 38%;
+	margin-right: 20px;
+	flex: 0 0 40%;
+	margin-right: 20px;
+}
+
+.right_text {
+	float: left;
+	flex: 1;
+	width: 60%;
+}
+
+.intro {
+	text-align: left;
+	text-indent: 2em;
+	display: block;
+	margin: 1em;
+}
+
+.card,
+.upload-section,
+.photo-section {
+	background: #f9f9f9;
+	padding: 20px;
+	border-radius: 20px;
+	margin-top: 3em;
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+img {
+	border-radius: 20px;
+}
+
+.card {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+
+.upload-section {
+	height: 400px;
+}
+.upload-section,
+.photo-section {
+	text-align: center;
+	align-items: center;
+}
+
+.result-section img {
+	max-width: 100%;
+	height: auto;
+}
+
+.card:hover,
+.photo-section:hover,
+.upload-section:hover {
+	transform: translateY(-5px);
+	background-color: rgba(92, 152, 236, 0.353);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.upload_recognition {
+    height: 350px;
+	display: flex;
+	justify-content: justify;
+    align-items: center;
+    
+}
+
+.upload_and_preview_field {
+	flex: 90%;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border: 2px dashed #ccc;
+	padding: 20px;
+	height: 300px;
+    border-radius:20px;
+    justify-content: center;
+}
+
+.recognition {
+	flex: 10%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid rgba(F, F, F, 0.1);
+    border-radius:100px
+	padding: 20px;
+    height: 300px; 
+	background-color: #f9f9f9;
+}
+
+#uploadButton {
+	/* hide */
+	display: inline-block;
+	width: 40%;
+	height: 28%;
+	border-radius: 20px;
+
+}
+
+#imageInput {
+	max-width: 100%;
+	height: auto;
+}

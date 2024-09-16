@@ -1,14 +1,62 @@
-# Butterfly Recognition
+#  Butterfly R
 
-### 模型
+
+> 蝴蝶识别系统
+
 - 基于tensorflow2.0和keras的卷积神经网络模型
-- docker容器化部署
-
-> 训练集来自[Zenodo](https://zenodo.org/records/7558895)
-
-
-### 微信小程序
-> ButterflyR
+- 模型采用DenseNet121和CAM
+- 使用Docker部署
+- ...
 
 
-Updating...
+
+
+
+#### Start Butterfly R
+
+- 下载
+
+```bash
+git clone https://github.com/Chenpeel/ButterflyR.git
+cd ButterflyR
+````
+
+- 依赖库
+
+```bash
+conda create -n BR-venv python=3.10
+conda activate BR-venv
+pip install -r requirements.txt
+```
+
+- 运行
+
+```bash
+# web-ui
+python main/app.py
+```
+
+
+
+#### Docker
+
+- 本地构建
+```bash
+cd ButterflyR
+docker build -t BR . -f docker/Dockerfile
+# for a long time
+docker run -p 5000:5000 BR:latest
+# Warning是正常的
+```
+  - 从浏览器打开
+```bash
+https://127.0.0.1:5000
+```
+
+
+
+
+
+#### Download Dataset
+
+[Get_Dataset](./main/data/get_dataset.md)

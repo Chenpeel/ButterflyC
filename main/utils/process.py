@@ -1,46 +1,70 @@
+import pandas as pd
+import numpy as np
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import (
+    ImageDataGenerator,
+    load_img,
+    img_to_array,
+)
 
-def parse_function(filename, label, image_size):
-    if image_size is None:
-        raise ValueError("image_size cannot be None")
-    
-    filename = tf.strings.as_string(filename)
-    image_string = tf.io.read_file(filename)
-    image = tf.image.decode_png(image_string, channels=3)
-    image = tf.image.resize(image, [image_size, image_size], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    image = tf.cast(image, tf.float32) / 255.0
 
-    return image, label
+def create_data_generators(configs, label_encoder):
+    # 读取 CSV 文件
+    train_df = pd.read_csv(configs["train_csv_path"])
+    test_df = pd.read_csv(configs["test_csv_path"])
 
-def augment(image):
-    image = tf.image.random_flip_left_right(image)
-    image = tf.image.random_flip_up_down(image)
-    image = tf.image.random_contrast(image, 0.8, 1.2)
-    image = tf.image.random_brightness(image, 0.1)
-    image = tf.image.random_hue(image, 0.1)
-    image = tf.image.random_saturation(image, 0.8, 1.2)
-    return image
+    # 配置数据生成器
+    train_datagen = ImageDataGenerator(
+        rescale=1.0 / 255.0,  # 将像素值缩放到0-1之间
+        rotation_range=30,  # 随机旋转
+        width_shift_range=0.1,  # 水平位移
+        height_shift_range=0.1,  # 垂直位移
+        shear_range=0.2,  # 剪切变换
+        zoom_range=0.2,  # 缩放
+        horizontal_flip=True,  # 随机水平翻转
+        fill_mode="nearest",  # 填充像素
+    )
 
-def parse_and_augment(filename, label, image_size, num_augments):
-    image, label = parse_function(filename, label, image_size)
-    augmented_images = [augment(image) for _ in range(num_augments)]
-    augmented_images = tf.stack(augmented_images)
-    labels = tf.fill([num_augments], label)
-    return augmented_images, labels
+    test_datagen = ImageDataGenerator(rescale=1.0 / 255.0)
 
-def get_batch(images, labels, image_size, batch_size, capacity, num_augments=3):
-    if image_size is None:
-        raise ValueError("image_size cannot be None")
-    
-    def process_image_and_label(filename, label):
-        images, labels = parse_and_augment(filename, label, image_size, num_augments)
-        return tf.data.Dataset.from_tensor_slices((images, labels))
+    # 创建训练数据生成器
+    train_generator = train_datagen.flow_from_dataframe(
+        dataframe=train_df,
+        directory=configs["train_path"],
+        x_col="filename",
+        y_col="label",
+        target_size=(configs["image_size"], configs["image_size"]),
+        batch_size=configs["batch_size"],
+        class_mode="categorical",
+        classes=list(label_encoder.classes_),  # Ensure labels are used as classes
+    )
 
-    dataset = tf.data.Dataset.from_tensor_slices((images, labels))
-    dataset = dataset.flat_map(process_image_and_label)
-    dataset = dataset.shuffle(buffer_size=capacity)
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.repeat()
-    return dataset
+    # 创建测试数据生成器
+    test_generator = test_datagen.flow_from_dataframe(
+        dataframe=test_df,
+        directory=configs["test_path"],
+        x_col="filename",
+        y_col=None,
+        target_size=(configs["image_size"], configs["image_size"]),
+        batch_size=configs["batch_size"],
+        class_mode=None,  # No labels in the test set
+    )
 
+    return train_generator, test_generator
+
+
+
+def preprocess_image(image_path, target_size):
+    img = load_img(image_path, target_size=target_size)
+    img_array = img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array /= 255.0
+    return img_array
+
+
+if __name__ == "__main__":
+    # Ensure prepare function is called before this script
+    from utils.prepare import prepare
+
+    configs, train_data, test_data, model_path, label_encoder = prepare("configs.yaml")
+    create_data_generators(configs, label_encoder)

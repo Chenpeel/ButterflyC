@@ -1,28 +1,40 @@
-device: 'CPU'  # CPU or GPU
-num_workers: 0  # 线程数
-num_classes: 10  # 分类数量
+device: "CPU" # CPU / GPU
+num_classes: 75 # 分类数
+num_workers: 0 # 线程数
 
-image_size: 224  # 图片大小
-batch_size: 16  # 单次训练数量
-capacity: 250  # 缓冲区大小
-precision: 'float16'  # 模型精度
-epochs: 50  # 训练次数
-lr: 0.001  # 学习率
+image_size: 224 # 图片大小
+batch_size: 16 # 单次训练数量
+capacity: 250 # 缓冲区大小
+precision: "float16" # 模型精度
+lr: 0.001 # 学习率
 
-# -----------------------------------------------------
-# 数据集路径配置
-dataset: butterfly  # 数据集名称
-classes_filename: 'cat2name.json'  # 类别文件名
-train_path: 'main/data/{{dataset}}/train'
-valid_path: 'main/data/{{dataset}}/valid'
-classes_path: 'main/data/{{dataset}}/{{classes_filename}}'
+epochs: 30 # 训练次数
 
-# 缓冲区路径配置
-temp_path: 'TEMP'
+# ------------路径配置-------------
+dataset: "6000butterfly"
+model_name: "BR-v1.0.2.h5"
+# 格式
+# main/data
+# └── 6000butterfly
+#     ├── Training_set.csv  (filename labels of train_dir)
+#     ├── Testing_set.csv   (same like train)
+#     ├── test
+#     └── train
 
-# 模型路径配置
-res_model_path: 'models/'
-load_model_path: 'models/pretrain'
+train_csv: "Training_set.csv" #类别
+test_csv: "Testing_set.csv"
 
-# 日志路径配置
-log_path: 'log/'
+# dirs
+train_path: "main/data/{{dataset}}/train"
+test_path: "main/data/{{dataset}}/test"
+train_csv_path: "main/data/{{dataset}}/{{train_csv}}"
+test_csv_path: "main/data/{{dataset}}/{{test_csv}}"
+
+work_dir: "TEMP" # 临时文件夹
+temp_data: "TEMP/data"
+uploaded_picture: "main/templates/static/uploads"
+static: "main/templates/static"
+result_model_path: "models"
+
+log_path: "log"
+loss_acc: "loss_acc.csv"
