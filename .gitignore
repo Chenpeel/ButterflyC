@@ -4,3 +4,4 @@ TEMP
 log
 main/data/*
 !main/data/get_dataset.md
+!main/data/6000butterfly.7z
