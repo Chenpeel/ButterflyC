@@ -15,6 +15,17 @@ def train_model(model_class) -> list:
         # 加载配置
         configs, train_data, test_data, model_path, label_encoder = prepare("configs.yaml")
 
+        # 设置设备
+        if configs["device"] == "GPU":
+            physical_devices = tf.config.list_physical_devices('GPU')
+            if physical_devices:
+                tf.config.experimental.set_memory_growth(physical_devices[0], True)
+                print("Using GPU")
+            else:
+                print("No GPU found, using CPU")
+        else:
+            print("Using CPU")
+
         # 检查配置
         print(f"Configs: {configs}")
         print(f"Label Encoder Classes: {label_encoder.classes_}")
