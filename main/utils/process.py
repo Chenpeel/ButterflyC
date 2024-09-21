@@ -6,12 +6,14 @@ from tensorflow.keras.preprocessing.image import (
     load_img,
     img_to_array,
 )
-
+from sklearn.model_selection import train_test_split
 
 def create_data_generators(configs, label_encoder):
     # 读取 CSV 文件
     train_df = pd.read_csv(configs["train_csv_path"])
-    test_df = pd.read_csv(configs["test_csv_path"])
+
+    # 将数据划分为训练集和验证集
+    train_df, val_df = train_test_split(train_df, test_size=0.2, stratify=train_df["label"], random_state=42)
 
     # 配置数据生成器
     train_datagen = ImageDataGenerator(
@@ -24,6 +26,8 @@ def create_data_generators(configs, label_encoder):
         horizontal_flip=True,  # 随机水平翻转
         fill_mode="nearest",  # 填充像素
     )
+
+    val_datagen = ImageDataGenerator(rescale=1.0 / 255.0)
 
     test_datagen = ImageDataGenerator(rescale=1.0 / 255.0)
 
@@ -39,9 +43,21 @@ def create_data_generators(configs, label_encoder):
         classes=list(label_encoder.classes_),  # Ensure labels are used as classes
     )
 
+    # 创建验证数据生成器
+    val_generator = val_datagen.flow_from_dataframe(
+        dataframe=val_df,
+        directory=configs["train_path"],
+        x_col="filename",
+        y_col="label",
+        target_size=(configs["image_size"], configs["image_size"]),
+        batch_size=configs["batch_size"],
+        class_mode="categorical",
+        classes=list(label_encoder.classes_),  # Ensure labels are used as classes
+    )
+
     # 创建测试数据生成器
     test_generator = test_datagen.flow_from_dataframe(
-        dataframe=test_df,
+        dataframe=pd.read_csv(configs["test_csv_path"]),
         directory=configs["test_path"],
         x_col="filename",
         y_col=None,
@@ -50,9 +66,7 @@ def create_data_generators(configs, label_encoder):
         class_mode=None,  # No labels in the test set
     )
 
-    return train_generator, test_generator
-
-
+    return train_generator, val_generator, test_generator
 
 def preprocess_image(image_path, target_size):
     img = load_img(image_path, target_size=target_size)
@@ -60,7 +74,6 @@ def preprocess_image(image_path, target_size):
     img_array = np.expand_dims(img_array, axis=0)
     img_array /= 255.0
     return img_array
-
 
 if __name__ == "__main__":
     # Ensure prepare function is called before this script

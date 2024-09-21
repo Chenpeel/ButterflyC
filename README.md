@@ -4,7 +4,7 @@
 > 蝴蝶识别系统
 
 - 基于tensorflow2.0和keras的卷积神经网络模型
-- 模型采用DenseNet121和CAM
+- 模型采用EfficientNet和CAM评估
 - 使用Docker部署
 - ...
 
