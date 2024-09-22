@@ -5,4 +5,5 @@ log
 main/data/*
 !main/data/get_dataset.md
 !main/data/6000butterfly.7z
-models/*.h5
+models/*
+!models/loss_acc.csv
