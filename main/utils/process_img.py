@@ -24,7 +24,7 @@ from sklearn.utils.class_weight import compute_class_weight
 
 
 configs = load_config()
-
+image_size = configs['image_size']
 
 def transform(labels):
     return label_encoder.transform(labels)
@@ -32,6 +32,20 @@ def transform(labels):
 def print_memory_usage():
     process = psutil.Process(os.getpid())
     print(f"Memory usage: {process.memory_info().rss / 1024 ** 2} MB")
+
+
+def process(image_paths, batch_size=configs['batch_size'], size=(image_size,image_size)):
+    for i in range(0, len(image_paths), batch_size):
+        batch_paths = image_paths[i:i + batch_size]
+        batch_images = []
+        for path in batch_paths:
+            img = load_img(path, target_size=size)
+            img_array = img_to_array(img)
+            img_array = np.expand_dims(img_array, axis=0)
+            img_array /= 255.0
+            batch_images.append(img_array)
+        yield np.vstack(batch_images)
+
 
 def genDatas():
     train_csv = pd.read_csv(configs['train_csv'])
@@ -52,17 +66,8 @@ def genDatas():
     label_encoder.fit(train_csv['label'])
 
     # 处理训练集
-    train_images = []
-    train_labels = []
-    for index, row in tqdm(train_csv.iterrows(), total=train_csv.shape[0], desc="Processing train images"):
-        img_path = os.path.join(configs['train_data'], str(row['filename']))
-        img = load_img(img_path, target_size=(configs['image_size'], configs['image_size']))
-        img = img_to_array(img)
-        train_images.append(img)
-        train_labels.append(transform([row['label']])[0])
-
-    train_images = np.array(train_images)
-    train_labels = np.array(train_labels)
+    train_image_paths = [os.path.join(configs['train_data'], str(row['filename'])) for row in train_csv.itertuples()]
+    train_labels = [transform([row.label])[0] for row in train_csv.itertuples()]
 
     # 检查原始数据集的类别分布
     unique_classes, class_counts = np.unique(train_labels, return_counts=True)
@@ -72,18 +77,11 @@ def genDatas():
         raise ValueError("The target 'y' in the original dataset needs to have more than 1 class. Got 1 class instead")
 
     # 处理测试集
-    test_images = []
-    test_labels = None
-    for index, row in tqdm(test_csv.iterrows(), total=test_csv.shape[0], desc="Processing test images"):
-        img_path = os.path.join(configs['test_data'], str(row['filename']))
-        img = load_img(img_path, target_size=(configs['image_size'], configs['image_size']))
-        img = img_to_array(img)
-        test_images.append(img)
-
-    test_images = np.array(test_images)
+    test_image_paths = [os.path.join(configs['test_data'], str(row['filename'])) for row in test_csv.itertuples()]
 
     # 划分训练集和验证集
-    X_train, X_val, y_train, y_val = train_test_split(train_images, train_labels, test_size=0.2, random_state=42)
+    train_image_paths, val_image_paths, train_labels, val_labels = train_test_split(
+        train_image_paths, train_labels, test_size=0.2, random_state=42)
 
     # 数据增强
     datagen = ImageDataGenerator(
@@ -101,7 +99,9 @@ def genDatas():
 
     augmented_images = []
     augmented_labels = []
-    for img, label in tqdm(zip(X_train, y_train), total=len(X_train), desc="Augmenting images"):
+    for img_path, label in tqdm(zip(train_image_paths, train_labels), total=len(train_image_paths), desc="Augmenting images"):
+        img = load_img(img_path, target_size=(configs['image_size'], configs['image_size']))
+        img = img_to_array(img)
         aug_imgs, aug_labels = augment_images(img, label, datagen, num_augmented=2, temp_dir=temp_dir)
         augmented_images.extend(aug_imgs)
         augmented_labels.extend(aug_labels)
@@ -127,11 +127,11 @@ def genDatas():
 
     # 将目标标签转换为 one-hot 编码格式
     y_res = tf.keras.utils.to_categorical(y_res, num_classes=len(unique_classes))
-    y_val = tf.keras.utils.to_categorical(y_val, num_classes=len(unique_classes))
+    y_val = tf.keras.utils.to_categorical(val_labels, num_classes=len(unique_classes))
 
     print_memory_usage()
 
-    return X_res, y_res, X_val, y_val, test_images, test_labels, class_weights_dict, temp_dir
+    return X_res, y_res, val_image_paths, y_val, test_image_paths, None, class_weights_dict, temp_dir
 
 def augment_images(image, label, datagen, num_augmented, temp_dir):
     image = np.expand_dims(image, 0)

@@ -7,11 +7,10 @@ import shutil
 import psutil
 from tensorflow.keras.callbacks import CSVLogger
 from main.model import br, VGG16M, ResNet50M, DenseNet121M
-from main.utils.process_img import genDatas
+from main.utils.process_img import genDatas, process
 from main.utils.config import load_config
 
 configs = load_config()
-
 
 def main(model_name):
     # 设置参数
@@ -38,8 +37,15 @@ def main(model_name):
     os.makedirs(log_dir, exist_ok=True)
     csv_logger = CSVLogger(os.path.join(log_dir, model_name + '.csv'))
 
-    train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)).shuffle(len(X_train)).batch(batch_size)
-    val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)).batch(batch_size)
+    train_dataset = tf.data.Dataset.from_generator(
+        lambda: process(X_train, batch_size=batch_size, size=(image_size, image_size)),
+        output_signature=tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32)
+    ).batch(batch_size)
+
+    val_dataset = tf.data.Dataset.from_generator(
+        lambda: process(X_val, batch_size=batch_size, size=(image_size, image_size)),
+        output_signature=tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32)
+    ).batch(batch_size)
 
     # 训练模型
     model.train(
@@ -52,7 +58,10 @@ def main(model_name):
 
     # 评估模型
     if y_test is not None:
-        test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)).batch(batch_size)
+        test_dataset = tf.data.Dataset.from_generator(
+            lambda: process(X_test, batch_size=batch_size, size=(image_size, image_size)),
+            output_signature=tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32)
+        ).batch(batch_size)
         test_loss, test_accuracy = model.evaluate(test_dataset)
         print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
     else:

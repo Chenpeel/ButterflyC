@@ -3,7 +3,7 @@
 
 > 蝴蝶识别系统
 - 基于tensorflow和keras的卷积神经网络模型
-- 模型采用EfficientNet和CAM评估
+- 模型采用EfficientNetB4和CAM评估
 - 使用Docker部署
 - ...
 
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 ```bash
 # web-ui
-python main/app.py
+python app/app.py
 ```
 
 
