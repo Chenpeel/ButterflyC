@@ -53,31 +53,49 @@ def main(model_name):
         )
     ).batch(batch_size)
 
-    # 训练模型
-    model.train(
-        train_dataset,
-        val_dataset,
-        class_weights,
-        epochs=epochs,
-        callbacks=[csv_logger]
-    )
-
-    # 评估模型
-    if y_test is not None:
-        test_dataset = tf.data.Dataset.from_generator(
-            lambda: process(X_test, y_test, batch_size=batch_size, size=(image_size, image_size)),
-            output_signature=(
-                tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
-                tf.TensorSpec(shape=(None,), dtype=tf.float32)
-            )
-        ).batch(batch_size)
-        test_loss, test_accuracy = model.evaluate(test_dataset)
-        print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
+    # 设置设备
+    device = configs.get('device', 'CPU')
+    if device == 'GPU':
+        physical_devices = tf.config.list_physical_devices('GPU')
+        if physical_devices:
+            try:
+                tf.config.experimental.set_memory_growth(physical_devices[0], True)
+                tf.config.set_visible_devices(physical_devices[0], 'GPU')
+                print("Using GPU")
+            except RuntimeError as e:
+                print(f"Error setting GPU device: {e}")
+        else:
+            print("No GPU found, using CPU")
+            device = 'CPU'
     else:
-        print("No test labels provided, skipping evaluation on test set.")
+        print("Using CPU")
 
-    # 保存模型
-    model.model.save(os.path.join(configs['model_path'], model_name + configs['model_suffix']))
+    with tf.device(f'/device:{device}:0'):
+        # 训练模型
+        model.train(
+            train_dataset,
+            val_dataset,
+            class_weights,
+            epochs=epochs,
+            callbacks=[csv_logger]
+        )
+
+        # 评估模型
+        if y_test is not None:
+            test_dataset = tf.data.Dataset.from_generator(
+                lambda: process(X_test, y_test, batch_size=batch_size, size=(image_size, image_size)),
+                output_signature=(
+                    tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
+                    tf.TensorSpec(shape=(None,), dtype=tf.float32)
+                )
+            ).batch(batch_size)
+            test_loss, test_accuracy = model.evaluate(test_dataset)
+            print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
+        else:
+            print("No test labels provided, skipping evaluation on test set.")
+
+        # 保存模型
+        model.model.save(os.path.join(configs['model_path'], model_name + configs['model_suffix']))
 
     # 清理临时目录
     clean_temp_dir(temp_dir)
