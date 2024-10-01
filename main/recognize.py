@@ -38,7 +38,7 @@ def recognize(pic_path):
         result = []
         result.append(uploaded_pic[0])
 
-        pic_array = process_img.process(
+        pic_array = process_img.process_up(
             pic_path,
             (configs["image_size"], configs["image_size"]),
         )

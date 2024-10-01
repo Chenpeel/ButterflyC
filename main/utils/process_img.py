@@ -34,9 +34,10 @@ def print_memory_usage():
     print(f"Memory usage: {process.memory_info().rss / 1024 ** 2} MB")
 
 
-def process(image_paths, batch_size=configs['batch_size'], size=(image_size,image_size)):
+def process(image_paths, labels, batch_size=configs['batch_size'], size=(image_size,image_size)):
     for i in range(0, len(image_paths), batch_size):
         batch_paths = image_paths[i:i + batch_size]
+        batch_labels = labels[i:i + batch_size]
         batch_images = []
         for path in batch_paths:
             img = load_img(path, target_size=size)
@@ -44,7 +45,7 @@ def process(image_paths, batch_size=configs['batch_size'], size=(image_size,imag
             img_array = np.expand_dims(img_array, axis=0)
             img_array /= 255.0
             batch_images.append(img_array)
-        yield np.vstack(batch_images)
+        yield np.vstack(batch_images), np.array(batch_labels)
 
 
 def genDatas():
@@ -66,8 +67,8 @@ def genDatas():
     label_encoder.fit(train_csv['label'])
 
     # 处理训练集
-    train_image_paths = [os.path.join(configs['train_data'], str(row['filename'])) for row in train_csv.itertuples()]
-    train_labels = [transform([row.label])[0] for row in train_csv.itertuples()]
+    train_image_paths = [os.path.join(configs['train_data'], str(row['filename'])) for index, row in train_csv.iterrows()]
+    train_labels = [transform([row['label']])[0] for index, row in train_csv.iterrows()]
 
     # 检查原始数据集的类别分布
     unique_classes, class_counts = np.unique(train_labels, return_counts=True)
@@ -77,7 +78,8 @@ def genDatas():
         raise ValueError("The target 'y' in the original dataset needs to have more than 1 class. Got 1 class instead")
 
     # 处理测试集
-    test_image_paths = [os.path.join(configs['test_data'], str(row['filename'])) for row in test_csv.itertuples()]
+    test_image_paths = [os.path.join(configs['test_data'], str(row['filename'])) for index, row in test_csv.iterrows()]
+    test_labels = np.zeros(len(test_image_paths))  # 假设没有测试标签
 
     # 划分训练集和验证集
     train_image_paths, val_image_paths, train_labels, val_labels = train_test_split(
@@ -131,7 +133,7 @@ def genDatas():
 
     print_memory_usage()
 
-    return X_res, y_res, val_image_paths, y_val, test_image_paths, None, class_weights_dict, temp_dir
+    return X_res, y_res, val_image_paths, y_val, test_image_paths, test_labels, class_weights_dict, temp_dir
 
 def augment_images(image, label, datagen, num_augmented, temp_dir):
     image = np.expand_dims(image, 0)
@@ -145,7 +147,7 @@ def augment_images(image, label, datagen, num_augmented, temp_dir):
 
 
 
-def process(path,size=(224,224))->ndarray:
+def process_up(path,size=(224,224))->ndarray:
     img = load_img(path, target_size=size)
     img_array = img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)

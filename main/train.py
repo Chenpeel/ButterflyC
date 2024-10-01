@@ -38,13 +38,19 @@ def main(model_name):
     csv_logger = CSVLogger(os.path.join(log_dir, model_name + '.csv'))
 
     train_dataset = tf.data.Dataset.from_generator(
-        lambda: process(X_train, batch_size=batch_size, size=(image_size, image_size)),
-        output_signature=tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32)
+        lambda: process(X_train, y_train, batch_size=batch_size, size=(image_size, image_size)),
+        output_signature=(
+            tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
+            tf.TensorSpec(shape=(None,), dtype=tf.float32)
+        )
     ).batch(batch_size)
 
     val_dataset = tf.data.Dataset.from_generator(
-        lambda: process(X_val, batch_size=batch_size, size=(image_size, image_size)),
-        output_signature=tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32)
+        lambda: process(X_val, y_val, batch_size=batch_size, size=(image_size, image_size)),
+        output_signature=(
+            tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
+            tf.TensorSpec(shape=(None,), dtype=tf.float32)
+        )
     ).batch(batch_size)
 
     # 训练模型
@@ -59,8 +65,11 @@ def main(model_name):
     # 评估模型
     if y_test is not None:
         test_dataset = tf.data.Dataset.from_generator(
-            lambda: process(X_test, batch_size=batch_size, size=(image_size, image_size)),
-            output_signature=tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32)
+            lambda: process(X_test, y_test, batch_size=batch_size, size=(image_size, image_size)),
+            output_signature=(
+                tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
+                tf.TensorSpec(shape=(None,), dtype=tf.float32)
+            )
         ).batch(batch_size)
         test_loss, test_accuracy = model.evaluate(test_dataset)
         print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
