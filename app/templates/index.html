@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Butterfly Recognition</title>
+    <!-- style from index.css -->
+    <link rel="stylesheet" href="/static/index.css">
+
+</head>
+
+<body>
+    <div>
+        <h2 class="title">Butterfly Recognition</h2>
+    </div>
+    <div class="container">
+        <div class="card" id="butterfly" onclick="window.location.href='/butterfly'">
+            <div class="left_pic">
+                <img src="/static/butterfly.jpg" alt="Butterfly" style="width: 100%; height: auto;">
+            </div>
+            <div class="right_text">
+                <h4 class="title"> Butterfly </h4>
+                <p class="intro">
+                    蝴蝶是一类常于日间飞行的昆虫，生物分类学中属于鳞翅目中名为凤蝶总科（学名：Papilionoidea，又名真蝶总科）的一个总科级演化支。其下共有7个科，包含了大约18,800种。
+                </p>
+                <p class="intro">
+                    如同其他昆虫，蝴蝶也属于节肢动物，体表具有分节的外骨骼，成虫身体也分为头、胸、腹三个部分，胸部长有两对翅膀，翅膀上各式各样的色彩和斑纹是由翅膀上的鳞片组成。蝴蝶是完全变态昆虫，其一生包括卵、幼虫、蛹与成虫四个阶段。世上体型最大的蝴蝶为亚历山大鸟翼凤蝶，展翅宽达280毫米，体型最小的蝴蝶是褐小灰蝶，只有16毫米
+                </p>
+                <p style="text-align: right; font-size: smaller; ">
+                    👈详情点击此卡片
+                </p>
+            </div>
+        </div>
+
+        <div class="photo-section">
+            <h3>Take Photo</h3>
+            <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none;">
+            <button type="button" onclick="takePhoto()">Take Photo</button>
+            <img id="photoPreview"
+                style="display: none; margin-top: 10px; display: block; margin-left: auto; margin-right: auto;" />
+        </div>
+
+        <div class="upload-section">
+            <h3>Upload Picture from Local</h3>
+            <div class="upload_recognition">
+                <div class="upload_and_preview_field">
+                    <input type="file" name="image" id="imageInput" accept="image/*" style="display:none;" />
+                    <button type="button" id="uploadButton">Upload Picture</button>
+                    <img id="imagePreview" style="display:none; margin-top:10px; align-self: center;" />
+                </div>
+                <div class="recognition" onclick="uploadFile()">识别</div>
+            </div>
+        </div>
+
+
+        <script src="/static/index.js"></script>
+</body>
+
+</html>

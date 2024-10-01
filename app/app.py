@@ -1,3 +1,15 @@
+import os
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+sys.path.append(project_root)
+
+import main.utils.config as config
+configs = config.load_config()
+
+if not os.path.exists(configs['upload_dir']):
+    os.system(f"mkdir {configs['upload_dir']}")
+
 from flask import (
     Flask,
     request,
@@ -8,13 +20,18 @@ from flask import (
     session,
     send_from_directory,
 )
-import os
 import logging
-from main.utils.prepare import configs
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 from main.recognize import recognize
 from urllib.parse import quote
+import secrets
 
 app = Flask(__name__)
+secret_key = secrets.token_hex(24)
+with open('key.yml','w+') as key_w:
+    key_w.write(f'Web_Secret_Key: "{secret_key}"\n')
+app.secret_key = secret_key
 
 @app.route("/", methods=["GET"])
 def index():
@@ -26,10 +43,10 @@ def index():
 
 # 使用绝对路径来确保路径的准确性
 static = os.path.abspath(configs["static"])
-uploaded_folder = os.path.abspath(configs["uploaded_picture"])
+uploaded_folder = os.path.abspath(configs["upload_dir"])
 
 
-@app.route("/ur", methods=["POST"])
+@app.route("/ur", methods=['POST'])
 def upload_recognize():
     if "file" not in request.files:
         return jsonify({"error": "no file part"}), 400
@@ -46,16 +63,18 @@ def upload_recognize():
             pic.save(file_path)
 
             result = recognize(file_path)
+            print(f'res: {result}')
             category = str(result[1][0])
+            print(f'cate:{category}')
             encoded_category_name = quote(
                 category.split(" ")[1] if len(category.split(" ")) > 1 else category
             )
+            print(f'encoded_cname:{encoded_category_name}')
 
-            # 在 session 中存储结果
             session["result_image"] = pic.filename
             session["result_category"] = category
             session["result_encoded_category"] = encoded_category_name
-            # 返回 JSON 响应，其中包含重定向的 URL
+            print('session End')
             return jsonify({"redirect": url_for("result")})
 
         except Exception as e:
@@ -100,6 +119,5 @@ def butterfly():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=5000, debug=False)
-
+    app.run(host="0.0.0.0",port=8090, debug=True)
 logging.basicConfig(level=logging.INFO)

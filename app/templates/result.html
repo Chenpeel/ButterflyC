@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Recognition Result</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+
+            img {
+                border-radius: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                text-align: center;
+            }
+
+            .image-section img {
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 20px;
+            }
+
+            .category-section {
+                background: #f9f9f9;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 10px;
+                font-size: 16px;
+                color: #fff;
+                background-color: #007bff;
+                border: none;
+                border-radius: 5px;
+                text-decoration: none;
+            }
+
+            .button:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="image-section">
+                <img src="{{ image }}" alt="Uploaded Butterfly Image" />
+            </div>
+            <div class="category-section">
+                <h2><strong id="category-display"></strong></h2>
+                <p>
+                    更多详情点击👉
+                    <a id="category-link" href="#" target="_blank">
+                        iNaturalist </a
+                    >👈
+                </p>
+            </div>
+            <a href="{{ url_for('index') }}" class="button">返回首页</a>
+        </div>
+
+        <script>
+            const categoryFull = "{{ category }}";
+            const categoryParts = categoryFull.split(" ");
+            const displayCategory =
+                categoryParts.length > 1 ? categoryParts[1] : categoryFull;
+            document.getElementById("category-display").innerText =
+                categoryFull; // Display the full category
+            const encodedCategory = encodeURIComponent(displayCategory);
+            document.getElementById("category-link").href =
+                `https://www.inaturalist.org/search?q=${encodedCategory}`;
+        </script>
+    </body>
+</html>

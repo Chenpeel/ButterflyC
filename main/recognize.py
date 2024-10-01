@@ -1,17 +1,19 @@
 import os
-import train
-import main.model
-import main.utils.prepare
-import main.utils.process
-import main.utils.eval
+import sys
+import main.train as train
+import main.model as model
+import main.utils.config as config
+import main.utils.process_img as process_img
+from main.utils.encode_label import label_encoder
+import main.utils.eval as eval
 import numpy as np
 import tensorflow as tf
 
-configs = main.utils.prepare.configs
+configs = config.load_config()
 
 
 def get_uploaded_pic():
-    uploaded_path = configs["uploaded_picture"]
+    uploaded_path = configs["upload_dir"]
     uploaded_pics = []
     for pic in os.listdir(uploaded_path):
         full_path = os.path.join(uploaded_path, pic)
@@ -20,32 +22,12 @@ def get_uploaded_pic():
 
 
 def load_model():
-    model_path = os.path.join(configs["result_model_path"], configs["model_name"])
-    loss_acc_path = os.path.join(configs["result_model_path"], configs["loss_acc"])
-    if not os.path.exists(model_path):
-        train.train_model()
-        main.utils.eval.plot_training_loss_acc(loss_acc_path)
-    else:
-        main.utils.eval.plot_training_loss_acc(loss_acc_path)
-    model = tf.keras.models.load_model(model_path)
-
+    model_path= configs['model_path']
+    br = os.path.join(model_path,'br.keras')
+    if not os.path.exists(br):
+        print('Train model first!')
+    model = tf.keras.models.load_model(br)
     return model
-
-
-def recognize_list():
-    uploaded_pics = get_uploaded_pic()
-    model = load_model()
-    for pic in uploaded_pics:
-        pc_pic = main.utils.process.preprocess_image(
-            pic,
-            (configs["image_size"], configs["image_size"]),
-        )
-        predictions = model.predict(pc_pic)
-        predicted_classes = np.argmax(predictions, axis=1)
-        predicted_label = main.utils.prepare.label_encoder.inverse_transform(
-            predicted_classes
-        )
-        print(f"{pic} ---- {predicted_label}")
 
 
 def recognize(pic_path):
@@ -54,20 +36,20 @@ def recognize(pic_path):
 
     if pic_path:
         result = []
-        result.append(uploaded_pic[0])  # 第一个元素是上传的图片路径
+        result.append(uploaded_pic[0])
 
-        pc_pic = main.utils.process.preprocess_image(
+        pic_array = process_img.process(
             pic_path,
             (configs["image_size"], configs["image_size"]),
         )
 
-        predictions = main.model.predict(pc_pic)
+        predictions = model.predict(pic_array)
         predicted_classes = np.argmax(predictions, axis=1)
 
         # 转换为 Python 列表，确保返回结果可以被 JSON 序列化
-        recognized_label = main.utils.prepare.label_encoder.inverse_transform(
-            predicted_classes
-        ).tolist()
+        recognized_label = label_encoder.inverse_transform(
+                    predicted_classes
+                ).tolist()
 
         # 将标签追加到结果中
         result.append(recognized_label)
@@ -80,4 +62,5 @@ def recognize(pic_path):
 
 
 if __name__ == "__main__":
-    recognize_list()
+    path = "app/templates/static/butterfly.jpg"
+    recognize(path)

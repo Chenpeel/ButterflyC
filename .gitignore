@@ -1,9 +1,8 @@
-__pycache__
-.DS_Store
 TEMP
+__pycache__
+data/*
+models
+.DS_Store
 log
-main/data/*
-!main/data/get_dataset.md
-!main/data/6000butterfly.7z
-models/*
-!models/loss_acc.csv
+*.keras
+*.h5

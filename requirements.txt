@@ -1,8 +1,9 @@
-tensorflow<=2.14
-scikit-learn
-numpy<2
-PyYAML
 Flask
+tensorflow
+scikit-learn
+numpy
+pyyaml
 pandas
-Pillow
+pillow
+tqdm
 matplotlib

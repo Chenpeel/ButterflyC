@@ -1,95 +1,76 @@
 import os
-import csv
-import sys
+import gc
+import numpy as np
 import tensorflow as tf
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+import sys
+import shutil
+import psutil
+from tensorflow.keras.callbacks import CSVLogger
+from main.model import br, VGG16M, ResNet50M, DenseNet121M
+from main.utils.process_img import genDatas
+from main.utils.config import load_config
 
-# 确保正确导入自定义模块
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from main.utils.prepare import prepare, clear_temp_data, configs
-from main.utils.process import create_data_generators
-from main.model import ButterflyR, VGG16Model, ResNet50Model, DenseNet121Model
+configs = load_config()
 
-def train_model(model_class) -> list:
-    try:
-        # 加载配置
-        configs, train_data, test_data, model_path, label_encoder = prepare("configs.yaml")
 
-        # 设置设备
-        if configs["device"] == "GPU":
-            physical_devices = tf.config.list_physical_devices('GPU')
-            if physical_devices:
-                tf.config.experimental.set_memory_growth(physical_devices[0], True)
-                print("Using GPU")
-            else:
-                print("No GPU found, using CPU")
-        else:
-            print("Using CPU")
+def main(model_name):
+    # 设置参数
+    image_size = configs['image_size']
+    input_shape = (image_size, image_size, 3)  # 输入图像的形状
+    num_classes = configs['num_classes']
+    epochs = configs['epochs']
+    batch_size = configs['batch_size']
+    X_train, y_train, X_val, y_val, X_test, y_test, class_weights, temp_dir = genDatas()
 
-        # 检查配置
-        print(f"Configs: {configs}")
-        print(f"Label Encoder Classes: {label_encoder.classes_}")
-        print(f"Model path: {model_path}")
+    if model_name == 'br':
+        model = br(input_shape, num_classes)
+    elif model_name == 'VGG16':
+        model = VGG16M(input_shape, num_classes)
+    elif model_name == 'ResNet50':
+        model = ResNet50M(input_shape, num_classes)
+    elif model_name == 'DenseNet121':
+        model = DenseNet121M(input_shape, num_classes)
+    else:
+        raise ValueError("Invalid model choice")
 
-        # 创建数据生成器
-        train_generator, val_generator, test_generator = create_data_generators(configs, label_encoder)
+    # 设置日志目录和CSVLogger回调
+    log_dir = configs['log_dir']
+    os.makedirs(log_dir, exist_ok=True)
+    csv_logger = CSVLogger(os.path.join(log_dir, model_name + '.csv'))
 
-        # 检查数据生成器
-        print(f"Train generator: {train_generator}")
-        print(f"Validation generator: {val_generator}")
-        print(f"Test generator: {test_generator}")
+    train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train)).shuffle(len(X_train)).batch(batch_size)
+    val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val)).batch(batch_size)
 
-        # 初始化模型
-        input_shape = (configs["image_size"], configs["image_size"], 3)  # 假设RGB图像输入
-        num_classes = configs["num_classes"]
+    # 训练模型
+    model.train(
+        train_dataset,
+        val_dataset,
+        class_weights,
+        epochs=epochs,
+        callbacks=[csv_logger]
+    )
 
-        model = model_class(input_shape, num_classes, learning_rate=configs["lr"])
-        model.compile()
+    # 评估模型
+    if y_test is not None:
+        test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test)).batch(batch_size)
+        test_loss, test_accuracy = model.evaluate(test_dataset)
+        print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
+    else:
+        print("No test labels provided, skipping evaluation on test set.")
 
-        # 设置回调函数
-        callbacks = [
-            ModelCheckpoint(
-                filepath=os.path.join(configs["result_model_path"], "best_model.h5"),
-                monitor="val_accuracy",
-                save_best_only=True,
-                verbose=1,
-            ),
-            EarlyStopping(monitor="val_accuracy", patience=4, verbose=1),
-        ]
+    # 保存模型
+    model.model.save(os.path.join(configs['model_path'], model_name + configs['model_suffix']))
 
-        # 训练模型
-        history = model.model.fit(
-            train_generator,
-            validation_data=val_generator,
-            epochs=configs["epochs"],
-            callbacks=callbacks,
-            verbose=1,
-        )
+    # 清理临时目录
+    clean_temp_dir(temp_dir)
+    # 清理不必要的变量
+    del model
+    del X_train, y_train, X_val, y_val, X_test, y_test
+    gc.collect()
 
-        # 保存最终模型
-        final_model_path = os.path.join(configs["result_model_path"], model_class.__name__ + configs["model_name"])
-        model.model.save(final_model_path)
-        print(f"Model saved at {final_model_path}")
-
-        # 保存训练和验证的损失和准确率
-        losses = history.history["loss"]
-        accuracies = history.history["accuracy"]
-        val_losses = history.history["val_loss"]
-        val_accuracies = history.history["val_accuracy"]
-        loss_acc = list(zip(losses, accuracies, val_losses, val_accuracies))
-        with open(os.path.join(configs["result_model_path"], "loss_acc.csv"), "w", newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(["Loss", "Accuracy", "Val_Loss", "Val_Accuracy"])
-            writer.writerows(loss_acc)
-
-        return loss_acc
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
+def clean_temp_dir(temp_dir):
+    shutil.rmtree(temp_dir)
 
 if __name__ == "__main__":
-    for model_class in [ButterflyR, VGG16Model, ResNet50Model, DenseNet121Model]:
-        loss_acc = train_model(model_class)
-        print(loss_acc)
-        clear_temp_data(configs["work_dir"])
+    for model_name in ['br', 'VGG16', 'ResNet50', 'DenseNet121']:
+        main(model_name)

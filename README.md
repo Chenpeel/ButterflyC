@@ -2,8 +2,7 @@
 
 
 > 蝴蝶识别系统
-
-- 基于tensorflow2.0和keras的卷积神经网络模型
+- 基于tensorflow和keras的卷积神经网络模型
 - 模型采用EfficientNet和CAM评估
 - 使用Docker部署
 - ...
@@ -24,8 +23,8 @@ cd ButterflyR
 - 依赖库
 
 ```bash
-conda create -n BR-venv python=3.10
-conda activate BR-venv
+python venv --name br python=3.11
+source  path/to/br/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -45,7 +44,7 @@ python main/app.py
 cd ButterflyR
 docker build -t BR . -f docker/Dockerfile
 # for a long time
-docker run -p 5000:5000 BR:latest
+docker run -p 8090:8090 br:latest
 # Warning是正常的
 ```
   - 从浏览器打开

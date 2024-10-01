@@ -1,0 +1,26 @@
+device: "CPU"
+num_classes: 75
+image_size: 224
+batch_size: 8
+capacity: 250
+precision: "float16"
+learning_rate: 0.001
+epochs: 1
+
+# --------------------------------------
+
+static: "app/templates/static"
+source_path: "data"
+model_suffix: "-br.keras"
+
+# --------------------------------------
+
+model_path: "main/models"
+log_dir: "main/model/log"
+
+data: "TEMP/data"
+upload_dir: "TEMP/upload"
+train_csv: "TEMP/data/Training_set.csv"
+test_csv: "TEMP/data/Testing_set.csv"
+train_data: "TEMP/data/train"
+test_data: "TEMP/data/test"
