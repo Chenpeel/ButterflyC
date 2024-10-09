@@ -59,7 +59,7 @@ def upload_recognize():
     if pic:
         try:
             # 保存上传的文件
-            file_path = os.path.join(uploaded_folder, pic.filename)
+            file_path = os.path.join(str(uploaded_folder), str(pic.filename))
             pic.save(file_path)
 
             result = recognize(file_path)

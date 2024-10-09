@@ -1,112 +1,75 @@
 import os
-import gc
-import numpy as np
 import tensorflow as tf
-import sys
-import shutil
-import psutil
-from tensorflow.keras.callbacks import CSVLogger
-from main.model import br, VGG16M, ResNet50M, DenseNet121M
-from main.utils.process_img import genDatas, process
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, CSVLogger
+from main.model import ButterflyR,VGG16M,ResNet50M,DenseNet121M
+from main.utils.process import load_data, encode_labels
 from main.utils.config import load_config
 
-configs = load_config()
+def train(model_name='ButterflyR'):
+    configs = load_config()
+    n = configs['num_classes']
+    size = configs['image_size']
+    train_data, val_data = load_data()
+    label_encoder = encode_labels(configs['train_csv'])
 
-def main(model_name):
-    # 设置参数
-    image_size = configs['image_size']
-    input_shape = (image_size, image_size, 3)  # 输入图像的形状
-    num_classes = configs['num_classes']
-    epochs = configs['epochs']
-    batch_size = configs['batch_size']
-    X_train, y_train, X_val, y_val, X_test, y_test, class_weights, temp_dir = genDatas()
+    if model_name=='ButterflyR':
+        butterfly_model = ButterflyR((size, size, 3), num_classes=n)
+    elif model_name=='VGG16M':
+        butterfly_model = VGG16M((size, size, 3), num_classes=n)
+    elif model_name=='ResNet50M':
+        butterfly_model = ResNet50M((size, size, 3), num_classes=n)
+    elif model_name=='DenseNet121M':
+        butterfly_model = DenseNet121M((size, size, 3), num_classes=n)
+    else :
+        butterfly_model = ButterflyR((size, size, 3), num_classes=n)
 
-    if model_name == 'br':
-        model = br(input_shape, num_classes)
-    elif model_name == 'VGG16':
-        model = VGG16M(input_shape, num_classes)
-    elif model_name == 'ResNet50':
-        model = ResNet50M(input_shape, num_classes)
-    elif model_name == 'DenseNet121':
-        model = DenseNet121M(input_shape, num_classes)
-    else:
-        raise ValueError("Invalid model choice")
+    model = butterfly_model.build_model()
 
-    # 设置日志目录和CSVLogger回调
-    log_dir = configs['log_dir']
-    os.makedirs(log_dir, exist_ok=True)
-    csv_logger = CSVLogger(os.path.join(log_dir, model_name + '.csv'))
 
-    train_dataset = tf.data.Dataset.from_generator(
-        lambda: process(X_train, y_train, batch_size=batch_size, size=(image_size, image_size)),
-        output_signature=(
-            tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
-            tf.TensorSpec(shape=(None,), dtype=tf.float32)
-        )
-    ).batch(batch_size)
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=configs['learning_rate']),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-    val_dataset = tf.data.Dataset.from_generator(
-        lambda: process(X_val, y_val, batch_size=batch_size, size=(image_size, image_size)),
-        output_signature=(
-            tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
-            tf.TensorSpec(shape=(None,), dtype=tf.float32)
-        )
-    ).batch(batch_size)
+    reduce_lr = ReduceLROnPlateau(
+        monitor='loss',
+        factor=0.8,
+        patience=5,
+        min_lr=0.00005
+    )
+    checkpoint = ModelCheckpoint(
+        os.path.join(configs['model_path'], 'br.keras'),
+        monitor='val_loss',
+        save_best_only=True
+    )
+    csv_logger = CSVLogger(os.path.join(configs['log_dir'], 'training_log.csv'))
 
-    # 设置设备
-    device = configs.get('device', 'CPU')
-    if device == 'GPU':
-        physical_devices = tf.config.list_physical_devices('GPU')
-        if physical_devices:
-            try:
-                tf.config.experimental.set_memory_growth(physical_devices[0], True)
-                tf.config.set_visible_devices(physical_devices[0], 'GPU')
-                print("Using GPU")
-            except RuntimeError as e:
-                print(f"Error setting GPU device: {e}")
-        else:
-            print("No GPU found, using CPU")
-            device = 'CPU'
-    else:
-        print("Using CPU")
+    history = model.fit(
+        train_data,
+        epochs=configs['initial_epochs'],
+        validation_data=val_data,
+        validation_freq=3,
+        callbacks=[reduce_lr, checkpoint, csv_logger]
+    )
 
-    with tf.device(f'/device:{device}:0'):
-        # 训练模型
-        model.train(
-            train_dataset,
-            val_dataset,
-            class_weights,
-            epochs=epochs,
-            callbacks=[csv_logger]
-        )
+    model = butterfly_model.unfreeze_base_model(model)
 
-        # 评估模型
-        if y_test is not None:
-            test_dataset = tf.data.Dataset.from_generator(
-                lambda: process(X_test, y_test, batch_size=batch_size, size=(image_size, image_size)),
-                output_signature=(
-                    tf.TensorSpec(shape=(None, image_size, image_size, 3), dtype=tf.float32),
-                    tf.TensorSpec(shape=(None,), dtype=tf.float32)
-                )
-            ).batch(batch_size)
-            test_loss, test_accuracy = model.evaluate(test_dataset)
-            print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
-        else:
-            print("No test labels provided, skipping evaluation on test set.")
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=configs['fine_tuning_learning_rate']),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-        # 保存模型
-        model.model.save(os.path.join(configs['model_path'], model_name + configs['model_suffix']))
+    history_fine = model.fit(
+        train_data,
+        epochs=configs['fine_tuning_epochs'],
+        validation_data=val_data,
+        validation_freq=3,
+        callbacks=[reduce_lr, checkpoint, csv_logger]
+    )
 
-    # 清理临时目录
-    clean_temp_dir(temp_dir)
-    # 清理不必要的变量
-    del model
-    del X_train, y_train, X_val, y_val, X_test, y_test
-    gc.collect()
-
-def clean_temp_dir(temp_dir):
-    shutil.rmtree(temp_dir)
+    return history, history_fine
 
 if __name__ == "__main__":
-    for model_name in ['br', 'VGG16', 'ResNet50', 'DenseNet121']:
-        main(model_name)
+    train()

@@ -1,14 +1,9 @@
 import os
 import shutil
-import sys
 import yaml
 
-
 def __docs__():
-
     '''
-    default: ->
-
     device: "CPU"
     num_classes: 75
     image_size: 224
@@ -19,7 +14,7 @@ def __docs__():
     epochs: 100
     static: "app/templates/static"
     source_path: "data"
-    model_suffix: "-br.keras"
+    model_suffix: ".keras"
     model_path: "main/models"
     log_dir: "main/model/log"
     data: "TEMP/data"
@@ -39,7 +34,7 @@ def load_config(config_file='config.yml')->dict:
             print(f'数据集不存在or未准备好：{configs["source_path"]}')
         shutil.copytree(configs['source_path'],configs['data'])
     if not os.path.exists(configs['model_path']):
-        os.system(f"mkdir {configs['model_path']}")
+        os.makedirs(configs['model_path'])
     return configs
 
 if __name__=='__main__':

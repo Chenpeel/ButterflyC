@@ -6,3 +6,5 @@ models
 log
 *.keras
 *.h5
+prompt.md
+

@@ -3,8 +3,7 @@ import sys
 import main.train as train
 import main.model as model
 import main.utils.config as config
-import main.utils.process_img as process_img
-from main.utils.encode_label import label_encoder
+import main.utils.process as process
 import main.utils.eval as eval
 import numpy as np
 import tensorflow as tf
@@ -33,12 +32,13 @@ def load_model():
 def recognize(pic_path):
     uploaded_pic = get_uploaded_pic()  # 获取上传的图片路径
     model = load_model()  # 加载模型
+    label_encoder  = process.encoded_labels(configs['train_csv'])
 
     if pic_path:
         result = []
         result.append(uploaded_pic[0])
 
-        pic_array = process_img.process_up(
+        pic_array = process.process_img(
             pic_path,
             (configs["image_size"], configs["image_size"]),
         )
