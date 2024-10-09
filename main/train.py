@@ -4,7 +4,18 @@ from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, CSVLo
 from main.model import ButterflyR,VGG16M,ResNet50M,DenseNet121M
 from main.utils.process import load_data, encode_labels
 from main.utils.config import load_config
-
+def check_device(device="CPU"):
+    if device=='GPU':
+        try:
+            gpus = tf.config.experimental.list_physical_devices('GPU')
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+                print(f"{len(gpus)} Physical GPUs, {len(logical_gpus)} Logical GPUs")
+        except RuntimeError as e:
+            print(e)
+        else:
+            return
 def train(model_name='ButterflyR'):
     configs = load_config()
     n = configs['num_classes']
@@ -21,7 +32,9 @@ def train(model_name='ButterflyR'):
     elif model_name=='DenseNet121M':
         butterfly_model = DenseNet121M((size, size, 3), num_classes=n)
     else :
+        model_name = 'ButterflyR'
         butterfly_model = ButterflyR((size, size, 3), num_classes=n)
+
 
     model = butterfly_model.build_model()
 
@@ -52,7 +65,7 @@ def train(model_name='ButterflyR'):
         validation_freq=3,
         callbacks=[reduce_lr, checkpoint, csv_logger]
     )
-
+    model.save(os.path.join(configs['model_path'],f'{model_name}-init.keras'))
     model = butterfly_model.unfreeze_base_model(model)
 
     model.compile(
@@ -68,7 +81,7 @@ def train(model_name='ButterflyR'):
         validation_freq=3,
         callbacks=[reduce_lr, checkpoint, csv_logger]
     )
-
+    model.save(os.path.join(configs['model_path'],f'{model_name}.keras'))
     return history, history_fine
 
 if __name__ == "__main__":
