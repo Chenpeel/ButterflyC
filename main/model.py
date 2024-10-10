@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.applications import EfficientNetB4, VGG16,ResNet50,DenseNet121
+from tensorflow.keras.applications import EfficientNetB0, VGG16,ResNet50,DenseNet121
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
@@ -9,7 +9,7 @@ class ButterflyR:
         self.num_classes = num_classes
 
     def build_model(self):
-        base_model = EfficientNetB4(include_top=False, weights='imagenet', input_shape=self.input_shape)
+        base_model = EfficientNetB0(include_top=False, weights='imagenet', input_shape=self.input_shape)
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dense(512, activation='relu')(x)

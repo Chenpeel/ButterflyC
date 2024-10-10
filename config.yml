@@ -18,7 +18,7 @@ model_suffix: "-br.keras"
 # --------------------------------------
 
 model_path: "main/models"
-log_dir: "main/model/log"
+log_dir: "main/models/log"
 
 data: "TEMP/data"
 upload_dir: "TEMP/upload"

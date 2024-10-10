@@ -11,15 +11,12 @@ from main.utils.config import load_config
 import tensorflow as tf
 
 def process_img(img_path, target_size):
-    try:
-        img = load_img(img_path, target_size=target_size)
-        img_array = img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array /= 255.0  # Normalize to [0, 1]
-        return img_array
-    except Exception as e:
-        print(f"Error processing image {img_path}: {e}")
-        return None
+    img = load_img(img_path, target_size=target_size)
+    img_array = img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array /= 255.0
+    return img_array
+
 
 def apply_smote(train_images, train_labels):
     try:

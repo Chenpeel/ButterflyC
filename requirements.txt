@@ -7,3 +7,5 @@ pandas
 pillow
 tqdm
 matplotlib
+opencv-python
+imblearn

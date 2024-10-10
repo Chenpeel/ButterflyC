@@ -22,7 +22,7 @@ def get_uploaded_pic():
 
 def load_model():
     model_path= configs['model_path']
-    br = os.path.join(model_path,'br.keras')
+    br = os.path.join(model_path,'ButterflyR.keras')
     if not os.path.exists(br):
         print('Train model first!')
     model = tf.keras.models.load_model(br)
@@ -32,7 +32,7 @@ def load_model():
 def recognize(pic_path):
     uploaded_pic = get_uploaded_pic()  # 获取上传的图片路径
     model = load_model()  # 加载模型
-    label_encoder  = process.encoded_labels(configs['train_csv'])
+    label_encoder  = process.encode_labels(configs['train_csv'])
 
     if pic_path:
         result = []
@@ -62,5 +62,5 @@ def recognize(pic_path):
 
 
 if __name__ == "__main__":
-    path = "app/templates/static/butterfly.jpg"
+    path = "data/test/Image_10.jpg"
     recognize(path)

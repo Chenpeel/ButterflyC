@@ -2,10 +2,11 @@
 
 
 > 蝴蝶识别系统
-- 基于tensorflow和keras的卷积神经网络模型
-- 模型采用EfficientNetB4和CAM评估
+- 基于tensorflow
+- 模型采用EfficientNetB4
 - 使用Docker部署
-- ...
+- Flask管理页面
+
 
 
 
@@ -23,15 +24,15 @@ cd ButterflyR
 - 依赖库
 
 ```bash
-python venv --name br python=3.11
-source  path/to/br/bin/activate
+conda create -n br python=3.11
+# 确保自己已经cd to/ButterflyR后
+export PYTHONPATH=${PWD}:$PYTHONPATH
 pip install -r requirements.txt
 ```
 
 - 运行
 
 ```bash
-# web-ui
 python app/app.py
 ```
 
@@ -58,4 +59,5 @@ https://127.0.0.1:8090
 
 #### Download Dataset
 
-[Get_Dataset](./main/data/get_dataset.md)
+[123云盘](https://www.123865.com/s/LwbWTd-B8Ii3)
+提取码: `chen`
