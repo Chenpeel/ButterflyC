@@ -3,7 +3,7 @@
 
 > 蝴蝶识别系统
 - 基于tensorflow
-- 模型采用EfficientNetB4
+- 模型采用EfficientNetB0
 - 使用Docker部署
 - Flask管理页面
 
