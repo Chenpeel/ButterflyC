@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, CSVLogger
-from main.model import ButterflyR,VGG16M,ResNet50M,DenseNet121M
+from main.model import ButterflyC,VGG16M,ResNet50M,DenseNet121M
 from main.utils.process import load_data, encode_labels
 from main.utils.config import load_config
 def check_device(device="CPU"):
@@ -16,15 +16,15 @@ def check_device(device="CPU"):
             print(e)
         else:
             return
-def train(model_name='ButterflyR'):
+def train(model_name='ButterflyC'):
     configs = load_config()
     n = configs['num_classes']
     size = configs['image_size']
     train_data, val_data = load_data()
     label_encoder = encode_labels(configs['train_csv'])
 
-    if model_name=='ButterflyR':
-        butterfly_model = ButterflyR((size, size, 3), num_classes=n)
+    if model_name=='ButterflyC':
+        butterfly_model = ButterflyC((size, size, 3), num_classes=n)
     elif model_name=='VGG16M':
         butterfly_model = VGG16M((size, size, 3), num_classes=n)
     elif model_name=='ResNet50M':
@@ -32,8 +32,8 @@ def train(model_name='ButterflyR'):
     elif model_name=='DenseNet121M':
         butterfly_model = DenseNet121M((size, size, 3), num_classes=n)
     else :
-        model_name = 'ButterflyR'
-        butterfly_model = ButterflyR((size, size, 3), num_classes=n)
+        model_name = 'ButterflyC'
+        butterfly_model = ButterflyC((size, size, 3), num_classes=n)
 
 
     model = butterfly_model.build_model()
@@ -52,11 +52,11 @@ def train(model_name='ButterflyR'):
         min_lr=0.00005
     )
     checkpoint = ModelCheckpoint(
-        os.path.join(configs['model_path'], 'br.keras'),
+        os.path.join(configs['model_path'], 'checkpoint.keras'),
         monitor='val_loss',
         save_best_only=True
     )
-    csv_logger = CSVLogger(os.path.join(configs['log_dir'], 'training_log.csv'))
+    csv_logger = CSVLogger(os.path.join(configs['log_dir'], 'csv_logger.csv'))
 
     history = model.fit(
         train_data,

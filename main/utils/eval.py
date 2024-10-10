@@ -110,7 +110,7 @@ def get_last_conv_layer_name(model):
 
 if __name__ == "__main__":
     configs = config.load_config()
-    for model_name in ['ButterflyR','ResNet50M','DenseNet121M']:
+    for model_name in ['ButterflyC','ResNet50M','DenseNet121M']:
         model = tf.keras.models.load_model(configs['model_path'] + '/'+model_name+'.keras')
         img_paths = [
             "data/train/Image_1001.jpg",

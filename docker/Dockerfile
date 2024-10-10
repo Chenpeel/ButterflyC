@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y libhdf5-dev pkg-config gcc
 WORKDIR /app
 COPY . /app
 
-ENV PYTHONPATH "${PYTHONPATH}:/app"
+ENV PYTHONPATH "${PYTHONPATH}:/"
 
 RUN pip install --no-binary h5py h5py
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir -r requirements.txt

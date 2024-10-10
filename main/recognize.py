@@ -22,10 +22,10 @@ def get_uploaded_pic():
 
 def load_model():
     model_path= configs['model_path']
-    br = os.path.join(model_path,'ButterflyR.keras')
-    if not os.path.exists(br):
+    bc = os.path.join(model_path,'ButterflyC.keras')
+    if not os.path.exists(bc):
         print('Train model first!')
-    model = tf.keras.models.load_model(br)
+    model = tf.keras.models.load_model(bc)
     return model
 
 

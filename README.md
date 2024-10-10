@@ -1,4 +1,4 @@
-#  Butterfly R
+#  Butterfly C
 
 
 > 蝴蝶识别系统
@@ -12,20 +12,20 @@
 
 
 
-#### Start Butterfly R
+#### Start Butterfly C
 
 - 下载
 
 ```bash
-git clone https://github.com/Chenpeel/ButterflyR.git
-cd ButterflyR
+git clone https://github.com/Chenpeel/ButterflyC.git
+cd ButterflyC
 ````
 
 - 依赖库
 
 ```bash
-conda create -n br python=3.11
-# 确保自己已经cd to/ButterflyR后
+conda create -n bc python=3.11
+# 确保自己已经cd to/ButterflyC后
 export PYTHONPATH=${PWD}:$PYTHONPATH
 pip install -r requirements.txt
 ```
@@ -42,10 +42,10 @@ python app/app.py
 
 - 本地构建
 ```bash
-cd ButterflyR
-docker build -t BR . -f docker/Dockerfile
+cd ButterflyC
+docker build -t BC . -f docker/Dockerfile
 # for a long time
-docker run -p 8090:8090 br:latest
+docker run -p 8090:8090 bc:latest
 # Warning是正常的
 ```
   - 从浏览器打开
