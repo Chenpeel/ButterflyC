@@ -110,8 +110,12 @@ def get_last_conv_layer_name(model):
 
 if __name__ == "__main__":
     configs = config.load_config()
-    for model_name in ['ButterflyC','ResNet50M','DenseNet121M']:
+    for model_name in ['EfficientNetB0','ResNet50M','DenseNet121M']:
         model = tf.keras.models.load_model(configs['model_path'] + '/'+model_name+'.keras')
+    # plot_accloss('/Users/alpha/Desktop/selfRepo/ButterflyC/main/models/log/EfficientNetB0.csv')
+    # plot_accloss('/Users/alpha/Desktop/selfRepo/ButterflyC/main/models/log/EfficientNetB1.csv')
+    # plot_accloss('/Users/alpha/Desktop/selfRepo/ButterflyC/main/models/log/VGG16M.csv')
+
         img_paths = [
             "data/train/Image_1001.jpg",
             "data/train/Image_1002.jpg",
