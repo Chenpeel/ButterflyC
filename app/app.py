@@ -1,14 +1,9 @@
 import os
 import sys
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-sys.path.append(project_root)
 
-import main.utils.config as config
-configs = config.load_config()
-
-if not os.path.exists(configs['upload_dir']):
-    os.system(f"mkdir {configs['upload_dir']}")
+upload_path = './upload'
+if not os.path.exists(upload_path):
+    os.system(f"mkdir {upload_path}")
 
 from flask import (
     Flask,

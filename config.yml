@@ -21,7 +21,7 @@ model_path: "main/models"
 log_dir: "main/models/log"
 
 data: "TEMP/data"
-upload_dir: "TEMP/upload"
+upload_dir: "app/upload"
 train_csv: "TEMP/data/Training_set.csv"
 test_csv: "TEMP/data/Testing_set.csv"
 train_data: "TEMP/data/train"

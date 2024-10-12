@@ -5,7 +5,7 @@ RUN echo "deb http://mirrors.ustc.edu.cn/debian/ bookworm main contrib non-free"
     && echo "deb http://mirrors.ustc.edu.cn/debian-security/ bookworm-security main contrib non-free" >> /etc/apt/sources.list
 
 RUN pip install --upgrade pip
-RUN apt-get update && apt-get install -y libhdf5-dev pkg-config gcc
+RUN apt-get update && apt-get install -y libhdf5-dev pkg-config gcc libgl1-mesa-glx libglib2.0-0
 WORKDIR /app
 COPY . /app
 

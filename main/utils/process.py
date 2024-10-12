@@ -1,4 +1,5 @@
 import os
+import json
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -74,4 +75,8 @@ def encode_labels(csv_path):
     label_encoder = LabelEncoder()
     global encoded_labels
     encoded_labels = label_encoder.fit_transform(labels)
+    label_mapping = {
+        label: int(encoded_label) for label, encoded_label in zip(labels, encoded_labels)}
+    with open('label_mapping.json', 'w') as f:
+        json.dump(label_mapping, f)
     return label_encoder
