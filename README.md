@@ -8,7 +8,8 @@
 - Flask管理页面
 
 
-
+> 由于docker 构建的镜像使用python和flask体积很大
+> 挖坑 C++基于crow 和 asio 重构
 
 
 
