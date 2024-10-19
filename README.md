@@ -2,13 +2,7 @@
 
 
 > 蝴蝶识别系统
-- 基于tensorflow
-- 模型采用EfficientNetB0
-- 使用Docker部署
-- Flask管理页面
-
-
-
+- 基于pytorch
 
 
 
@@ -26,14 +20,13 @@ cd ButterflyC
 ```bash
 conda create -n bc python=3.11
 # 确保自己已经cd to/ButterflyC后
-export PYTHONPATH=${PWD}:$PYTHONPATH
 pip install -r requirements.txt
 ```
 
 - 运行
 
 ```bash
-python app/app.py
+python PYTHONPATH=${PWD}:$PYTHONPATH app/app.py
 ```
 
 

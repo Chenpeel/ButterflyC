@@ -1,11 +1,6 @@
 import os
 import sys
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-sys.path.append(project_root)
-
-import main.utils.config as config
-configs = config.load_config()
+from main.utils.prepare import configs
 
 if not os.path.exists(configs['upload_dir']):
     os.system(f"mkdir {configs['upload_dir']}")
@@ -23,7 +18,7 @@ from flask import (
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-from main.recognize import recognize
+from main.classify import classify_image
 from urllib.parse import quote
 import secrets
 
@@ -47,7 +42,7 @@ uploaded_folder = os.path.abspath(configs["upload_dir"])
 
 
 @app.route("/ur", methods=['POST'])
-def upload_recognize():
+def upload_classify():
     if "file" not in request.files:
         return jsonify({"error": "no file part"}), 400
 
@@ -62,7 +57,7 @@ def upload_recognize():
             file_path = os.path.join(str(uploaded_folder), str(pic.filename))
             pic.save(file_path)
 
-            result = recognize(file_path)
+            result = classify_image(file_path)
             print(f'res: {result}')
             category = str(result[1][0])
             print(f'cate:{category}')

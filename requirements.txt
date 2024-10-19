@@ -1,11 +1,7 @@
-Flask
-tensorflow
-scikit-learn
+torch
+torchvision
+torchaudio
+pillow
 numpy
 pyyaml
-pandas
-pillow
 tqdm
-matplotlib
-opencv-python
-imblearn
